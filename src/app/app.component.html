@@ -1,0 +1,61 @@
+<main class="page-shell">
+  <div class="hero-copy">
+    <p class="eyebrow">Angular chat widget</p>
+    <h1>My Website</h1>
+    <p class="lede">A clean Angular rebuild of the chat widget with local JSON-only option trees and no API calls.</p>
+  </div>
+
+  <button
+    class="chat-toggle"
+    type="button"
+    aria-label="Open chat"
+    [style.left.px]="chatToggleLeft"
+    [style.top.px]="chatToggleTop"
+    (pointerdown)="startToggleDrag($event)"
+    (click)="onToggleClick($event)"
+  >
+    💬
+  </button>
+
+  <section class="chat-window" [class.hidden]="!isChatOpen" aria-label="Chat assistant">
+    <header class="chat-header">
+      <div>
+        <span class="assistant-title">AI Assistant</span>
+        <span class="assistant-subtitle">Local JSON menu only</span>
+      </div>
+      <button type="button" aria-label="Close chat" (click)="closeChat()">✕</button>
+    </header>
+
+    <div class="chat-messages">
+      <ng-container *ngFor="let item of timeline">
+        <ng-container *ngIf="item.type === 'message'">
+          <div class="message" [class.user-message]="item.message.sender === 'user'" [class.bot-message]="item.message.sender === 'bot'">
+            {{ item.message.text }}
+          </div>
+          <div class="message-timestamp" *ngIf="item.message.timestamp && item.message.sender === 'user'">{{ item.message.timestamp }}</div>
+        </ng-container>
+
+        <div class="option-row" *ngIf="item.type === 'options'">
+          <button
+            *ngFor="let option of item.options"
+            type="button"
+            class="chat-option"
+            (click)="handleAction(option)"
+          >
+            {{ option.label }}
+          </button>
+        </div>
+      </ng-container>
+    </div>
+
+    <form class="chat-footer" (submit)="$event.preventDefault(); sendTypedMessage(messageInput.value); messageInput.value = ''">
+      <input
+        type="text"
+        #messageInput
+        placeholder="Type a message..."
+        autocomplete="off"
+      />
+      <button type="submit" aria-label="Send message">➤</button>
+    </form>
+  </section>
+</main>

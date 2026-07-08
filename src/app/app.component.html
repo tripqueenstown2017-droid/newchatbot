@@ -26,7 +26,7 @@
       <button type="button" aria-label="Close chat" (click)="closeChat()">✕</button>
     </header>
 
-    <div class="chat-messages">
+    <div class="chat-messages" #chatMessages>
       <ng-container *ngFor="let item of timeline">
         <ng-container *ngIf="item.type === 'message'">
           <div class="message" [class.user-message]="item.message.sender === 'user'" [class.bot-message]="item.message.sender === 'bot'">

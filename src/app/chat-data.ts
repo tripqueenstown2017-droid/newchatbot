@@ -11,6 +11,19 @@ export interface ChatCategory {
   subOptions: ChatSubOption[];
 }
 
+export interface FallbackOption {
+  id: string;
+  label: string;
+  categoryId: string;
+  url?: string;
+}
+
+export const FALLBACK_OPTIONS: FallbackOption[] = [
+  { id: 'button-1', label: 'button-1', categoryId: 'orders', url: 'https://example.com/button-1' },
+  { id: 'button-2', label: 'button-2', categoryId: 'billing', url: 'https://example.com/button-2' },
+  { id: 'button-3', label: 'button-3', categoryId: 'product' }
+];
+
 export const CHAT_DATA: ChatCategory[] = [
   {
     id: 'orders',

@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener } from '@angular/core';
-import { CHAT_DATA, ChatCategory, ChatSubOption } from './chat-data';
+import { Component, HostListener, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { CHAT_DATA, ChatCategory, ChatSubOption, FALLBACK_OPTIONS } from './chat-data';
 
 interface ChatMessage {
   sender: 'bot' | 'user';
@@ -29,7 +29,8 @@ interface MatchedSubOption {
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
-export class AppComponent {
+export class AppComponent implements AfterViewInit {
+  @ViewChild('chatMessages', { static: false }) private chatMessagesContainer?: ElementRef<HTMLElement>;
   protected isChatOpen = false;
   protected timeline: TimelineItem[] = [];
   protected activeCategory: ChatCategory | null = null;
@@ -63,6 +64,22 @@ export class AppComponent {
 
   handleAction(action: ChatAction): void {
     action.action();
+    this.scrollToBottom();
+  }
+
+  ngAfterViewInit(): void {
+    this.scrollToBottom();
+  }
+
+  private scrollToBottom(): void {
+    if (this.chatMessagesContainer) {
+      setTimeout(() => {
+        const element = this.chatMessagesContainer?.nativeElement;
+        if (element) {
+          element.scrollTop = element.scrollHeight;
+        }
+      }, 0);
+    }
   }
 
   startToggleDrag(event: PointerEvent): void {
@@ -108,6 +125,26 @@ export class AppComponent {
     }
 
     this.addBotMessage('I can only answer from the local menu data. Try typing a topic like Orders, Billing, Product Help, or Support.');
+    this.addFallbackOptions();
+  }
+
+  private addFallbackOptions(): void {
+    const fallbackOptions = FALLBACK_OPTIONS.map((fallback) => ({
+      label: fallback.label,
+      action: () => {
+        if (fallback.url) {
+          window.open(fallback.url, '_blank', 'noopener');
+          return;
+        }
+
+        const category = this.chatData.find((item) => item.id === fallback.categoryId);
+        if (category) {
+          this.showSubOptions(category);
+        }
+      }
+    }));
+
+    this.addOptions(fallbackOptions);
   }
 
   private resetConversation(): void {

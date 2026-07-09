@@ -36,8 +36,13 @@ export class AppComponent implements AfterViewInit {
   protected activeCategory: ChatCategory | null = null;
   protected chatToggleLeft = this.getInitialToggleLeft();
   protected chatToggleTop = this.getInitialToggleTop();
+  protected showIntro = false;
+  protected introComplete = false;
+  protected introFadeOut = false;
 
   private lastTimestampDateKey: string | null = null;
+  private introCompleteTimerId?: number;
+  private introFadeOutTimerId?: number;
 
   private readonly chatData = CHAT_DATA;
   private isDraggingToggle = false;
@@ -53,13 +58,25 @@ export class AppComponent implements AfterViewInit {
     this.isChatOpen = true;
 
     if (!this.hasInitializedConversation) {
-      this.resetConversation();
-      this.hasInitializedConversation = true;
+      this.showIntro = true;
+      this.introComplete = false;
+      this.introFadeOut = false;
+      this.clearIntroTimers();
+
+      this.introCompleteTimerId = window.setTimeout(() => {
+        this.onIntroAnimationEnd();
+      }, 3200);
+    } else {
+      this.showIntro = false;
+      this.introComplete = true;
     }
   }
 
   closeChat(): void {
     this.isChatOpen = false;
+    this.showIntro = false;
+    this.introComplete = false;
+    this.clearIntroTimers();
   }
 
   handleAction(action: ChatAction): void {
@@ -103,6 +120,37 @@ export class AppComponent implements AfterViewInit {
     this.openChat();
   }
 
+  private clearIntroTimers(): void {
+    if (this.introCompleteTimerId !== undefined) {
+      window.clearTimeout(this.introCompleteTimerId);
+      this.introCompleteTimerId = undefined;
+    }
+
+    if (this.introFadeOutTimerId !== undefined) {
+      window.clearTimeout(this.introFadeOutTimerId);
+      this.introFadeOutTimerId = undefined;
+    }
+  }
+
+  protected onIntroAnimationEnd(): void {
+    if (!this.introComplete) {
+      this.introComplete = true;
+      this.introFadeOut = true;
+
+      if (this.timeline.length === 0) {
+        this.resetConversation();
+        this.hasInitializedConversation = true;
+      }
+
+      this.scrollToBottom();
+
+      this.introFadeOutTimerId = window.setTimeout(() => {
+        this.showIntro = false;
+        this.introFadeOut = false;
+      }, 600);
+    }
+  }
+
   sendTypedMessage(text: string): void {
     const trimmedText = text.trim();
 
@@ -125,6 +173,7 @@ export class AppComponent implements AfterViewInit {
     }
 
     this.addBotMessage('I can only answer from the local menu data. Try typing a topic like Orders, Billing, Product Help, or Support.');
+    this.addBotMessage('choose from potions11111');
     this.addFallbackOptions();
   }
 
@@ -132,6 +181,13 @@ export class AppComponent implements AfterViewInit {
     const fallbackOptions = FALLBACK_OPTIONS.map((fallback) => ({
       label: fallback.label,
       action: () => {
+        this.addUserMessage(fallback.label);
+
+        if (fallback.id === 'button-3') {
+          this.addBotMessage('connecting to help desk');
+          return;
+        }
+
         if (fallback.url) {
           window.open(fallback.url, '_blank', 'noopener');
           return;
@@ -231,7 +287,12 @@ Select a topic or type a question to get started:`
 
   private handleSubOptionSelection(category: ChatCategory, subOption: ChatSubOption): void {
     this.addUserMessage(subOption.label);
-    this.addBotMessage(subOption.reply);
+
+    if (Array.isArray(subOption.reply)) {
+      subOption.reply.forEach((replyText) => this.addBotMessage(replyText));
+    } else {
+      this.addBotMessage(subOption.reply);
+    }
 
     this.activeCategory = category;
 
@@ -245,7 +306,7 @@ Select a topic or type a question to get started:`
       return;
     }
 
-    this.addOptions([{ label: 'Back to main options', action: () => this.resetConversation() }]);
+    //this.addOptions([{ label: 'Back to main options', action: () => this.resetConversation() }]);
   }
 
   private pickRandomItems<T>(items: readonly T[], count: number): T[] {

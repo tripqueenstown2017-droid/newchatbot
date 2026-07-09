@@ -1,6 +1,6 @@
 export interface ChatSubOption {
   label: string;
-  reply: string;
+  reply: string | string[];
   children?: ChatSubOption[];
 }
 
@@ -34,7 +34,10 @@ export const CHAT_DATA: ChatCategory[] = [
         label: 'Track an order',
         reply: 'Please choose how you want to track it:',
         children: [
-          { label: 'By order ID', reply: 'Enter your order ID and I will check the latest delivery status.' },
+          { label: 'By order ID', reply: [
+            'Enter your order ID and I will check the latest delivery status.',
+            '<ol><li>Open your email inbox.</li><li>Search for your order confirmation.</li><li>Copy the order ID from the email.</li></ol>'
+          ] },
           { label: 'By phone number', reply: 'Use the phone number linked to your order for a quick status check.' },
           { label: 'By email', reply: 'I can look it up using the email address used at checkout.' }
         ]

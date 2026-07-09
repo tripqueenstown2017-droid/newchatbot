@@ -18,7 +18,13 @@
   </button>
 
   <section class="chat-window" [class.hidden]="!isChatOpen" aria-label="Chat assistant">
-    <header class="chat-header">
+    <div class="chat-intro-overlay" *ngIf="showIntro" [class.fade-out]="introFadeOut">
+      <img class="intro-logo" src="assets/logosvg.svg" alt="Logo" (animationend)="onIntroAnimationEnd()" />
+    </div>
+
+    <ng-container *ngIf="introComplete">
+      
+      <header class="chat-header">
       <div>
         <span class="assistant-title">AI Assistant</span>
         <span class="assistant-subtitle">Local JSON menu only</span>
@@ -29,9 +35,8 @@
     <div class="chat-messages" #chatMessages>
       <ng-container *ngFor="let item of timeline">
         <ng-container *ngIf="item.type === 'message'">
-          <div class="message" [class.user-message]="item.message.sender === 'user'" [class.bot-message]="item.message.sender === 'bot'">
-            {{ item.message.text }}
-          </div>
+          <div *ngIf="item.message.sender === 'bot'" class="message bot-message" [innerHTML]="item.message.text"></div>
+          <div *ngIf="item.message.sender === 'user'" class="message user-message">{{ item.message.text }}</div>
           <div class="message-timestamp" *ngIf="item.message.timestamp && item.message.sender === 'user'">{{ item.message.timestamp }}</div>
         </ng-container>
 
@@ -47,8 +52,9 @@
         </div>
       </ng-container>
     </div>
+    </ng-container>
 
-    <form class="chat-footer" (submit)="$event.preventDefault(); sendTypedMessage(messageInput.value); messageInput.value = ''">
+    <form class="chat-footer" *ngIf="introComplete" (submit)="$event.preventDefault(); sendTypedMessage(messageInput.value); messageInput.value = ''">
       <input
         type="text"
         #messageInput

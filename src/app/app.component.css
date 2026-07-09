@@ -54,8 +54,8 @@ h1 {
   position: fixed;
   right: 20px;
   bottom: 104px;
-  width: min(390px, calc(100vw - 40px));
-  height: min(580px, calc(100vh - 140px));
+  width: min(390px, calc(100vw) - 40px);
+  height: min(580px, calc(100vh) - 140px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -63,6 +63,50 @@ h1 {
   background: rgba(255, 255, 255, 0.92);
   box-shadow: 0 18px 50px rgba(15, 23, 42, 0.2);
   backdrop-filter: blur(12px);
+}
+
+.chat-intro-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.96);
+  z-index: 10;
+  transition: opacity 0.6s ease;
+}
+
+.chat-intro-overlay.fade-out {
+  opacity: 0;
+}
+
+.intro-logo {
+  width: 72px;
+  height: 72px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1);
+  will-change: top, transform;
+  animation: introMove 2s ease forwards;
+  animation-delay: 1s;
+}
+
+@keyframes introMove {
+  from {
+    top: 50%;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  to {
+    top: 16px;
+    transform: translate(-50%, 0) scale(0.82);
+  }
+}
+
+.chat-logo-container {
+  display: flex;
+  justify-content: center;
+  padding-top: 14px;
 }
 
 .hidden {

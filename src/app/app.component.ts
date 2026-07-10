@@ -1,11 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, HostListener, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CHAT_DATA, ChatCategory, ChatSubOption, FALLBACK_OPTIONS } from './chat-data';
 
 interface ChatMessage {
   sender: 'bot' | 'user';
   text: string;
   timestamp?: string;
+  videoUrl?: SafeResourceUrl;
 }
 
 type TimelineItem =
@@ -31,6 +33,8 @@ interface MatchedSubOption {
 })
 export class AppComponent implements AfterViewInit {
   @ViewChild('chatMessages', { static: false }) private chatMessagesContainer?: ElementRef<HTMLElement>;
+
+  constructor(private readonly sanitizer: DomSanitizer) {}
   protected isChatOpen = false;
   protected timeline: TimelineItem[] = [];
   protected activeCategory: ChatCategory | null = null;
@@ -288,8 +292,14 @@ Select a topic or type a question to get started:`
   private handleSubOptionSelection(category: ChatCategory, subOption: ChatSubOption): void {
     this.addUserMessage(subOption.label);
 
-    if (Array.isArray(subOption.reply)) {
-      subOption.reply.forEach((replyText) => this.addBotMessage(replyText));
+    const replyText = Array.isArray(subOption.reply)
+      ? subOption.reply.join('\n\n')
+      : subOption.reply;
+
+    if (subOption.videoUrl) {
+      this.addBotMessage(replyText, subOption.videoUrl);
+    } else if (Array.isArray(subOption.reply)) {
+      subOption.reply.forEach((replyLine) => this.addBotMessage(replyLine));
     } else {
       this.addBotMessage(subOption.reply);
     }
@@ -378,8 +388,12 @@ Select a topic or type a question to get started:`
     this.addMessage({ sender: 'user', text, timestamp });
   }
 
-  private addBotMessage(text: string): void {
-    this.addMessage({ sender: 'bot', text });
+  private addBotMessage(text: string, videoUrl?: string): void {
+    const safeVideoUrl = videoUrl
+      ? this.sanitizer.bypassSecurityTrustResourceUrl(videoUrl)
+      : undefined;
+
+    this.addMessage({ sender: 'bot', text, videoUrl: safeVideoUrl });
   }
 
   private shouldAddTimestamp(): boolean {

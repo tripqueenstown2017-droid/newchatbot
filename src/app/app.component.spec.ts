@@ -23,14 +23,24 @@ describe('AppComponent', () => {
     (component as any).addUserMessage('Orders');
     fixture.detectChanges();
 
-    const firstUserMessage = component['messages'][1];
+    const firstTimelineItem = component['timeline'][0];
+    if (firstTimelineItem.type !== 'message') {
+      throw new Error('Expected the first timeline item to be a message');
+    }
+
+    const firstUserMessage = firstTimelineItem.message;
     expect(firstUserMessage.timestamp).toBeTruthy();
     expect(firstUserMessage.timestamp).toMatch(/[A-Za-z]{3}\s+\d{1,2}\s+\|\s+\d/);
 
     (component as any).addUserMessage('Billing');
     fixture.detectChanges();
 
-    const secondUserMessage = component['messages'][2];
+    const secondTimelineItem = component['timeline'][1];
+    if (secondTimelineItem.type !== 'message') {
+      throw new Error('Expected the second timeline item to be a message');
+    }
+
+    const secondUserMessage = secondTimelineItem.message;
     expect(secondUserMessage.timestamp).toBeUndefined();
   });
 
@@ -41,6 +51,22 @@ describe('AppComponent', () => {
     component.closeChat();
     component.openChat();
 
-    expect(component['messages'].length).toBe(2);
+    expect(component['timeline'].length).toBe(2);
+  });
+
+  it('includes a compact video embed for the By order ID option', () => {
+    const category = component['chatData'].find((item: { id: string }) => item.id === 'orders') as any;
+    const subOption = category?.subOptions?.[0]?.children?.find((child: { label: string }) => child.label === 'By order ID') as any;
+
+    expect(category).toBeDefined();
+    expect(subOption).toBeDefined();
+
+    (component as any).handleSubOptionSelection(category, subOption);
+
+    const botMessage = component['timeline'].find((item: any) => item.type === 'message' && item.message?.sender === 'bot') as
+      | { type: 'message'; message: { sender: string; videoUrl?: unknown } }
+      | undefined;
+
+    expect(botMessage?.message?.videoUrl).toBeTruthy();
   });
 });
